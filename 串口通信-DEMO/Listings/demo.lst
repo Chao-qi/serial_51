@@ -1,0 +1,253 @@
+C51 COMPILER V9.54   DEMO                                                                  12/08/2020 16:19:16 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE DEMO
+OBJECT MODULE PLACED IN .\Objects\demo.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE demo.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\demo
+                    -.lst) TABS(2) OBJECT(.\Objects\demo.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          
+   3          //------------------串口通信协议-----------------//
+   4          
+   5          /*接收数据包：A4450673210#  回复: 3OJBBBS
+   6            接收数据包：A4450674210#  回复: 4OJBBBS
+   7            接收数据包：A4450675210#  回复: 5OJBBBS
+   8            接收数据包：A4450773210#  回复: 37JBBBS
+   9            接收数据包：A4450774210#  回复: 47JBBBS
+  10            接收数据包：A4450775210#  回复: 57JBBBS
+  11          */
+  12          
+  13          char buf_string[20];    //定义接收数据包长度为20位
+  14          char send_string[20];   //定义回复数据包长度为20位
+  15          #define datapackage_headflag 'A'        //定义指令头部验证标记
+  16          
+  17          sbit LED2=P2^1;
+  18          //----------------------------------------------//
+  19          /*******************************
+  20          
+  21              MCU:89C52RC        11.0592MHz
+  22          
+  23          //11.0592MHz 0xd0 1200bps
+  24          //12MHz 0xcc 1200bps
+  25          //11.0592MHz 0xfa 9600bps
+  26          //0xf4 11.0592MHz  0xf3 12MHz 4800bps
+  27          *******************************/
+  28          //发送数据
+  29          void PutString(unsigned char *TXStr)  
+  30          {                
+  31   1          ES=0;     
+  32   1           while(*TXStr!=0) 
+  33   1          {                      
+  34   2              SBUF=*TXStr;
+  35   2              while(TI==0);
+  36   2              TI=0;    
+  37   2              TXStr++;
+  38   2          }
+  39   1          ES=1; 
+  40   1      }                                                     
+  41          //接收数据
+  42          bit ReceiveString()    
+  43          {
+  44   1          char * RecStr=buf_string;
+  45   1          char num=0;
+  46   1          unsigned char count=0;
+  47   1          loop:    
+  48   1          *RecStr=SBUF;
+  49   1          count=0;
+  50   1          RI=0;    
+  51   1          if(num<11)  //连续接收12个字符
+  52   1          {
+  53   2              num++;
+  54   2              RecStr++;    
+C51 COMPILER V9.54   DEMO                                                                  12/08/2020 16:19:16 PAGE 2   
+
+  55   2              while(!RI)
+  56   2              {
+  57   3                  count++;
+  58   3                  if(count>130)return 0;    //接收数据等待延时
+  59   3              }
+  60   2              goto loop;
+  61   2          }
+  62   1          return 1;
+  63   1      }
+  64          //串口初始化
+  65          void Init_USART()  
+  66          {
+  67   1          SCON=0x50;  //串口方式1,使能接收
+  68   1          TMOD|=0x20;  //定时器1，工作方式2
+  69   1          TMOD&=~0x10;
+  70   1          TH1=0xfa;   //9600bps
+  71   1          TL1=0xfa;  
+  72   1          PCON|=0x80;  //SMOD=1
+  73   1          TR1=1;
+  74   1          TI=0;
+  75   1          RI=0;
+  76   1          //PS=1; 
+  77   1          ES=1;  //开启串口中断使能
+  78   1      }
+  79          //头部比较函数
+  80          bit CompareCMD_head(char CMD_head[])    
+  81          {
+  82   1          unsigned char CharNum;
+  83   1          for(CharNum=0;CharNum<5;CharNum++)  //指令头部长度
+  84   1          {
+  85   2              if(!(buf_string[CharNum+1]==CMD_head[CharNum]))   
+  86   2              {
+  87   3                  return 0;  //失败返回0
+  88   3              }
+  89   2          }
+  90   1          return 1;        //成功返回1
+  91   1      }
+  92          //比较指令尾部(start:从哪里开始比较,quality:比较多少个字符,CMD_tail[]:要比较的字符串)
+  93          bit CompareCMD_tail(unsigned char start,unsigned char quality,char CMD_tail[]) 
+  94          {
+  95   1          unsigned char CharNum;
+  96   1          for(CharNum=0;CharNum<quality;CharNum++)
+  97   1          {
+  98   2              if(!(buf_string[start+CharNum]==CMD_tail[CharNum]))
+  99   2              {
+ 100   3                  return 0; 
+ 101   3              }
+ 102   2          }
+ 103   1          return 1;
+ 104   1      }
+ 105          bit Deal_UART_RecData()   //处理串口接收数据包函数(成功处理数据包返回1,失败返回0)
+ 106          {
+ 107   1          if(buf_string[0]==datapackage_headflag&&buf_string[11]=='#')  //进行数据包头尾验证
+ 108   1          {        
+ 109   2              if(CompareCMD_head("44506")) //命令头部
+ 110   2              {       
+ 111   3                if(CompareCMD_tail(6,5,"73210"))//命令尾部
+ 112   3                {
+ 113   4                  send_string[0]='3';
+ 114   4                  send_string[1]='O';
+ 115   4                  send_string[2]='J';
+ 116   4                  send_string[3]='B';
+C51 COMPILER V9.54   DEMO                                                                  12/08/2020 16:19:16 PAGE 3   
+
+ 117   4                  send_string[4]='B';
+ 118   4                  send_string[5]='B';
+ 119   4                  send_string[6]='S';                               
+ 120   4                  LED2 = 0;                     
+ 121   4                  PutString(send_string) ;//匹配成功返回字符串定义                                            
+ 122   4                  return 1;
+ 123   4                }
+ 124   3                else if(CompareCMD_tail(6,5,"74210"))
+ 125   3                {
+ 126   4                  send_string[0]='4';
+ 127   4                  send_string[1]='O';
+ 128   4                  send_string[2]='J';
+ 129   4                  send_string[3]='B';
+ 130   4                  send_string[4]='B';
+ 131   4                  send_string[5]='B';
+ 132   4                  send_string[6]='S';                                     
+ 133   4                  LED2 = 0;                     
+ 134   4                  PutString(send_string) ;//匹配成功返回字符串定义                                          
+ 135   4                  return 1;
+ 136   4                }
+ 137   3                else if(CompareCMD_tail(6,5,"75210"))
+ 138   3                {
+ 139   4                  send_string[0]='5';
+ 140   4                  send_string[1]='O';
+ 141   4                  send_string[2]='J';
+ 142   4                  send_string[3]='B';
+ 143   4                  send_string[4]='B';
+ 144   4                  send_string[5]='B';
+ 145   4                  send_string[6]='S';                                                                                       
+ 146   4                  LED2 = 0;                     
+ 147   4                  PutString(send_string) ;//匹配成功返回字符串定义                                            
+ 148   4                  return 1;
+ 149   4                }
+ 150   3              }
+ 151   2              else if(CompareCMD_head("44507"))
+ 152   2              {
+ 153   3                if(CompareCMD_tail(6,5,"73210"))//命令尾部
+ 154   3                {
+ 155   4                  send_string[0]='3';
+ 156   4                  send_string[1]='7';
+ 157   4                  send_string[2]='J';
+ 158   4                  send_string[3]='B';
+ 159   4                  send_string[4]='B';
+ 160   4                  send_string[5]='B';
+ 161   4                  send_string[6]='S';                                                                                         
+ 162   4                  LED2 = 0;                     
+ 163   4                  PutString(send_string) ;//匹配成功返回字符串定义                                  
+ 164   4                  return 1;
+ 165   4                }
+ 166   3                else if(CompareCMD_tail(6,5,"74210"))
+ 167   3                {
+ 168   4                  send_string[0]='4';
+ 169   4                  send_string[1]='7';
+ 170   4                  send_string[2]='J';
+ 171   4                  send_string[3]='B';
+ 172   4                  send_string[4]='B';
+ 173   4                  send_string[5]='B';
+ 174   4                  send_string[6]='S';                                                                                       
+ 175   4                  LED2 = 0;                     
+ 176   4                  PutString(send_string) ;//匹配成功返回字符串定义                                              
+ 177   4                  return 1;
+ 178   4                }
+C51 COMPILER V9.54   DEMO                                                                  12/08/2020 16:19:16 PAGE 4   
+
+ 179   3                else if(CompareCMD_tail(6,5,"75210"))
+ 180   3                {
+ 181   4                  send_string[0]='5';
+ 182   4                  send_string[1]='7';
+ 183   4                  send_string[2]='J';
+ 184   4                  send_string[3]='B';
+ 185   4                  send_string[4]='B';
+ 186   4                  send_string[5]='B';
+ 187   4                  send_string[6]='S';                                                                                       
+ 188   4                  LED2 = 0;                     
+ 189   4                  PutString(send_string) ;//匹配成功返回字符串定义                                              
+ 190   4                  return 1;
+ 191   4                }
+ 192   3              }   
+ 193   2          }
+ 194   1          return 0;     
+ 195   1      }
+ 196          /************************
+ 197                 中断函数
+ 198          ************************/
+ 199          void USART() interrupt 4   
+ 200          {
+ 201   1          if(ReceiveString())     //字节长度匹配成功运行如下含函数度
+ 202   1          {     
+ 203   2              Deal_UART_RecData();   
+ 204   2          }
+ 205   1          else
+ 206   1          {
+ 207   2              //LED1=~LED1;    //匹配失败运行此段程序        
+ 208   2          }
+ 209   1          RI=0;  
+ 210   1      }
+ 211          /***************************
+ 212                  主函数
+ 213          ***************************/
+ 214          void main()
+ 215          {
+ 216   1          EA=1;
+ 217   1          Init_USART();
+ 218   1          while(1)
+ 219   1          {
+ 220   2              
+ 221   2          }
+ 222   1      }
+ 223          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    432    ----
+   CONSTANT SIZE    =     30    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     40       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

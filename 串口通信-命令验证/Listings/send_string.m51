@@ -1,0 +1,285 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        12/07/2020  20:01:11  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+D:\KEIL_V5\C51\BIN\BL51.EXE .\Objects\send.obj TO .\Objects\send_string PRINT (.\Listings\send_string.m51) RAMSIZE (256)
+>> 
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\send.obj (SEND)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C_STARTUP)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C?CLDPTR)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C?CLDOPTR)
+  D:\KEIL_V5\C51\LIB\C51S.LIB (?C?CSTPTR)
+
+
+LINK MAP OF MODULE:  .\Objects\send_string (SEND)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0028H     UNIT         ?DT?SEND
+            DATA    0030H     0004H     UNIT         _DATA_GROUP_
+            IDATA   0034H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     001BH     UNIT         ?PR?INIT_USART?SEND
+                    001EH     0005H                  *** GAP ***
+            CODE    0023H     0003H     ABSOLUTE     
+            CODE    0026H     0058H     UNIT         ?C?LIB_CODE
+            CODE    007EH     004AH     UNIT         ?PR?DEAL_UART_RECDATA?SEND
+            CODE    00C8H     003AH     UNIT         ?PR?USART?SEND
+            CODE    0102H     0034H     UNIT         ?PR?_COMPARECMD_TAIL?SEND
+            CODE    0136H     002EH     UNIT         ?PR?RECEIVESTRING?SEND
+            CODE    0164H     002CH     UNIT         ?PR?_COMPARECMD_HEAD?SEND
+            CODE    0190H     001AH     UNIT         ?PR?_PUTSTRING?SEND
+            CODE    01AAH     000CH     UNIT         ?CO?SEND
+            CODE    01B6H     000CH     UNIT         ?C_C51STARTUP
+            CODE    01C2H     0007H     UNIT         ?PR?MAIN?SEND
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\send_string (SEND)
+
+
+SEGMENT                              DATA_GROUP 
+  +--> CALLED SEGMENT              START    LENGTH
+--------------------------------------------------
+?PR?USART?SEND                     -----    -----
+  +--> ?PR?RECEIVESTRING?SEND
+  +--> ?PR?DEAL_UART_RECDATA?SEND
+
+?PR?DEAL_UART_RECDATA?SEND         -----    -----
+  +--> ?CO?SEND
+BL51 BANKED LINKER/LOCATER V6.22                                                      12/07/2020  20:01:11  PAGE 2
+
+
+  +--> ?PR?_COMPARECMD_HEAD?SEND
+  +--> ?PR?_COMPARECMD_TAIL?SEND
+  +--> ?PR?_PUTSTRING?SEND
+
+?PR?_COMPARECMD_HEAD?SEND          0030H    0003H
+
+?PR?_COMPARECMD_TAIL?SEND          0030H    0004H
+
+*** NEW ROOT ***************************************************
+
+?C_C51STARTUP                      -----    -----
+  +--> ?PR?MAIN?SEND
+
+?PR?MAIN?SEND                      -----    -----
+  +--> ?PR?INIT_USART?SEND
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\send_string (SEND)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        SEND
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  B:00A8H.7       PUBLIC        EA
+  C:0003H         PUBLIC        Init_USART
+  B:00A0H.1       PUBLIC        LED2
+  D:00A8H         PUBLIC        IE
+  C:007EH         PUBLIC        Deal_UART_RecData
+  C:00C8H         PUBLIC        USART
+  C:0164H         PUBLIC        _CompareCMD_head
+  B:00A8H.4       PUBLIC        ES
+  D:00B8H         PUBLIC        IP
+  B:0098H.0       PUBLIC        RI
+  B:0098H.1       PUBLIC        TI
+  C:01C2H         PUBLIC        main
+  D:0008H         PUBLIC        send_string
+  C:0102H         PUBLIC        _CompareCMD_tail
+  D:0099H         PUBLIC        SBUF
+  D:0087H         PUBLIC        PCON
+  D:0098H         PUBLIC        SCON
+  D:0089H         PUBLIC        TMOD
+  D:0088H         PUBLIC        TCON
+  C:0190H         PUBLIC        _PutString
+  D:001CH         PUBLIC        buf_string
+  C:0136H         PUBLIC        ReceiveString
+  D:008DH         PUBLIC        TH1
+  D:008BH         PUBLIC        TL1
+  B:0088H.6       PUBLIC        TR1
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          _PUTSTRING
+  D:0001H         SYMBOL        TXStr
+BL51 BANKED LINKER/LOCATER V6.22                                                      12/07/2020  20:01:11  PAGE 3
+
+
+  C:0190H         LINE#         41
+  C:0190H         LINE#         42
+  C:0190H         LINE#         43
+  C:0192H         LINE#         44
+  C:0197H         LINE#         45
+  C:0197H         LINE#         46
+  C:0199H         LINE#         47
+  C:019CH         LINE#         48
+  C:019EH         LINE#         49
+  C:01A5H         LINE#         50
+  C:01A7H         LINE#         51
+  C:01A9H         LINE#         52
+  -------         ENDPROC       _PUTSTRING
+  -------         PROC          RECEIVESTRING
+  -------         DO            
+  D:0001H         SYMBOL        RecStr
+  D:0007H         SYMBOL        num
+  D:0006H         SYMBOL        count
+  C:013EH         SYMBOL        loop
+  -------         ENDDO         
+  C:0136H         LINE#         54
+  C:0136H         LINE#         55
+  C:0136H         LINE#         56
+  C:013CH         LINE#         57
+  C:013EH         LINE#         58
+  C:013EH         LINE#         59
+  C:013EH         LINE#         60
+  C:0143H         LINE#         61
+  C:0145H         LINE#         62
+  C:0147H         LINE#         63
+  C:014FH         LINE#         64
+  C:014FH         LINE#         65
+  C:0150H         LINE#         66
+  C:0157H         LINE#         67
+  C:015AH         LINE#         68
+  C:015AH         LINE#         69
+  C:015BH         LINE#         70
+  C:0162H         LINE#         71
+  C:0162H         LINE#         72
+  C:0162H         LINE#         73
+  C:0162H         LINE#         74
+  C:0163H         LINE#         75
+  -------         ENDPROC       RECEIVESTRING
+  -------         PROC          INIT_USART
+  C:0003H         LINE#         77
+  C:0003H         LINE#         78
+  C:0003H         LINE#         79
+  C:0006H         LINE#         80
+  C:0009H         LINE#         81
+  C:000CH         LINE#         82
+  C:000FH         LINE#         83
+  C:0012H         LINE#         84
+  C:0015H         LINE#         85
+  C:0017H         LINE#         86
+  C:0019H         LINE#         87
+  C:001BH         LINE#         89
+  C:001DH         LINE#         90
+BL51 BANKED LINKER/LOCATER V6.22                                                      12/07/2020  20:01:11  PAGE 4
+
+
+  -------         ENDPROC       INIT_USART
+  -------         PROC          _COMPARECMD_HEAD
+  D:0030H         SYMBOL        CMD_head
+  -------         DO            
+  D:0007H         SYMBOL        CharNum
+  -------         ENDDO         
+  C:0164H         LINE#         92
+  C:016AH         LINE#         93
+  C:016AH         LINE#         95
+  C:016CH         LINE#         96
+  C:016CH         LINE#         97
+  C:0189H         LINE#         98
+  C:0189H         LINE#         99
+  C:018AH         LINE#         100
+  C:018AH         LINE#         101
+  C:018EH         LINE#         102
+  C:018FH         LINE#         103
+  -------         ENDPROC       _COMPARECMD_HEAD
+  -------         PROC          _COMPARECMD_TAIL
+  D:0030H         SYMBOL        start
+  D:0005H         SYMBOL        quality
+  D:0031H         SYMBOL        CMD_tail
+  -------         DO            
+  D:0007H         SYMBOL        CharNum
+  -------         ENDDO         
+  C:0102H         LINE#         105
+  C:010AH         LINE#         106
+  C:010AH         LINE#         108
+  C:0111H         LINE#         109
+  C:0111H         LINE#         110
+  C:0130H         LINE#         111
+  C:0130H         LINE#         112
+  C:0131H         LINE#         113
+  C:0131H         LINE#         114
+  C:0134H         LINE#         115
+  C:0135H         LINE#         116
+  -------         ENDPROC       _COMPARECMD_TAIL
+  -------         PROC          DEAL_UART_RECDATA
+  C:007EH         LINE#         117
+  C:007EH         LINE#         118
+  C:007EH         LINE#         120
+  C:008AH         LINE#         121
+  C:008AH         LINE#         122
+  C:0095H         LINE#         123
+  C:0095H         LINE#         124
+  C:00A4H         LINE#         125
+  C:00A4H         LINE#         126
+  C:00A7H         LINE#         127
+  C:00AAH         LINE#         128
+  C:00ADH         LINE#         129
+  C:00B0H         LINE#         130
+  C:00B3H         LINE#         131
+  C:00B6H         LINE#         132
+  C:00B9H         LINE#         135
+  C:00BBH         LINE#         136
+  C:00C4H         LINE#         138
+  C:00C6H         LINE#         139
+BL51 BANKED LINKER/LOCATER V6.22                                                      12/07/2020  20:01:11  PAGE 5
+
+
+  C:00C6H         LINE#         141
+  C:00C6H         LINE#         143
+  C:00C6H         LINE#         144
+  C:00C7H         LINE#         145
+  -------         ENDPROC       DEAL_UART_RECDATA
+  -------         PROC          USART
+  C:00C8H         LINE#         150
+  C:00E1H         LINE#         152
+  C:00E6H         LINE#         153
+  C:00E6H         LINE#         155
+  C:00E9H         LINE#         156
+  C:00E9H         LINE#         158
+  C:00E9H         LINE#         161
+  C:00E9H         LINE#         162
+  C:00EBH         LINE#         163
+  -------         ENDPROC       USART
+  -------         PROC          MAIN
+  C:01C2H         LINE#         167
+  C:01C2H         LINE#         168
+  C:01C2H         LINE#         169
+  C:01C4H         LINE#         170
+  C:01C7H         LINE#         171
+  C:01C7H         LINE#         172
+  C:01C7H         LINE#         175
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        SEND
+
+  -------         MODULE        ?C?CLDPTR
+  C:0026H         PUBLIC        ?C?CLDPTR
+  -------         ENDMOD        ?C?CLDPTR
+
+  -------         MODULE        ?C?CLDOPTR
+  C:003FH         PUBLIC        ?C?CLDOPTR
+  -------         ENDMOD        ?C?CLDOPTR
+
+  -------         MODULE        ?C?CSTPTR
+  C:006CH         PUBLIC        ?C?CSTPTR
+  -------         ENDMOD        ?C?CSTPTR
+
+Program Size: data=53.0 xdata=0 code=452
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

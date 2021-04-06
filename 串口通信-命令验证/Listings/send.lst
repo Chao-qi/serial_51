@@ -1,0 +1,200 @@
+C51 COMPILER V9.54   SEND                                                                  12/07/2020 20:24:41 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE SEND
+OBJECT MODULE PLACED IN .\Objects\send.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE send.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\send
+                    -.lst) TABS(2) OBJECT(.\Objects\send.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          
+   3          //------------------串口通信协议-----------------//
+   4          /*
+   5              客户端数据接收解释(长度恒为15):
+   6              例如:A01_fmq_01Off___#
+   7              A--------数据包开始标记
+   8              01-----设备ID
+   9              fmq_01Off___--------指令(长度恒为10),指令前4个是头部,指令后6个是尾部
+  10              #---------数据包结束标志
+  11          
+  12              服务端数据包格式解析(长度恒为15):
+  13              例如:A02_SenT010250#
+  14              A--------数据包开始标记
+  15              02-----设备ID
+  16              SenT010250--------指令(长度恒为10),指令前4个是头部,指令后6个是尾部
+  17              #---------数据包结束标志
+  18          */
+  19          char buf_string[20];    //定义数据包长度为16位
+  20          char send_string[20];   //定义回复包数组
+  21          //#define deviceID_1Bit '0'                //定义设备ID第一位
+  22          //#define deviceID_2Bit '2'                //定义设备ID第二位
+  23          #define datapackage_headflag 'A'        //定义指令头部验证标记
+  24          
+  25          //char DataPackage_DS18B20[16]={datapackage_headflag,deviceID_1Bit,deviceID_2Bit,'_','S','e','n','T','X','
+             -X','X','X','X','X','#'};
+  26          //char HeartBeat[16]={datapackage_headflag,deviceID_1Bit,deviceID_2Bit,'_','B','e','a','t','X','X','X','X'
+             -,'X','X','#'};
+  27          
+  28          sbit LED2=P2^1;
+  29          //----------------------------------------------//
+  30          /*******************************
+  31          
+  32              MCU:89C52RC        11.0592MHz
+  33          
+  34          //11.0592MHz 0xd0 1200bps
+  35          //12MHz 0xcc 1200bps
+  36          //11.0592MHz 0xfa 9600bps
+  37          //0xf4 11.0592MHz  0xf3 12MHz 4800bps
+  38          //??SMOD=1????(???????)
+  39          *******************************/
+  40          //接收数据
+  41          void PutString(unsigned char *TXStr)  
+  42          {                
+  43   1          ES=0;     
+  44   1           while(*TXStr!=0) 
+  45   1          {                      
+  46   2              SBUF=*TXStr;
+  47   2              while(TI==0);
+  48   2              TI=0;    
+  49   2              TXStr++;
+  50   2          }
+  51   1          ES=1; 
+  52   1      }                                                     
+C51 COMPILER V9.54   SEND                                                                  12/07/2020 20:24:41 PAGE 2   
+
+  53          //发送数据
+  54          bit ReceiveString()    
+  55          {
+  56   1          char * RecStr=buf_string;
+  57   1          char num=0;
+  58   1          unsigned char count=0;
+  59   1          loop:    
+  60   1          *RecStr=SBUF;
+  61   1          count=0;
+  62   1          RI=0;    
+  63   1          if(num<11)  //连续接收15个字符
+  64   1          {
+  65   2              num++;
+  66   2              RecStr++;    
+  67   2              while(!RI)
+  68   2              {
+  69   3                  count++;
+  70   3                  if(count>130)return 0;    //接收数据等待延时
+  71   3              }
+  72   2              goto loop;
+  73   2          }
+  74   1          return 1;
+  75   1      }
+  76          //串口初始化
+  77          void Init_USART()  
+  78          {
+  79   1          SCON=0x50;  //串口方式1,使能接收
+  80   1          TMOD|=0x20;  //定时器1，工作方式2
+  81   1          TMOD&=~0x10;
+  82   1          TH1=0xfa;   //9600bps
+  83   1          TL1=0xfa;  
+  84   1          PCON|=0x80;  //SMOD=1
+  85   1          TR1=1;
+  86   1          TI=0;
+  87   1          RI=0;
+  88   1          //PS=1; 
+  89   1          ES=1;  //开启串口中断使能
+  90   1      }
+  91          //头部比较函数
+  92          bit CompareCMD_head(char CMD_head[])    
+  93          {
+  94   1          unsigned char CharNum;
+  95   1          for(CharNum=0;CharNum<5;CharNum++)  //指令长度位
+  96   1          {
+  97   2              if(!(buf_string[CharNum+1]==CMD_head[CharNum]))   
+  98   2              {
+  99   3                  return 0;  //失败返回0
+ 100   3              }
+ 101   2          }
+ 102   1          return 1;        //成功返回1
+ 103   1      }
+ 104          //比较指令尾部(start:从哪里开始比较,quality:比较多少个字符,CMD_tail[]:要比较的字符串)
+ 105          bit CompareCMD_tail(unsigned char start,unsigned char quality,char CMD_tail[]) 
+ 106          {
+ 107   1          unsigned char CharNum;
+ 108   1          for(CharNum=0;CharNum<quality;CharNum++)
+ 109   1          {
+ 110   2              if(!(buf_string[start+CharNum]==CMD_tail[CharNum]))
+ 111   2              {
+ 112   3                  return 0; 
+ 113   3              }
+ 114   2          }
+C51 COMPILER V9.54   SEND                                                                  12/07/2020 20:24:41 PAGE 3   
+
+ 115   1          return 1;
+ 116   1      }
+ 117          bit Deal_UART_RecData()   //处理串口接收数据包函数(成功处理数据包返回1,失败返回0)
+ 118          {
+ 119   1          //PutString(buf_string);
+ 120   1          if(buf_string[0]==datapackage_headflag&&buf_string[11]=='#')  //进行数据包头尾验证
+ 121   1          {        
+ 122   2              if(CompareCMD_head("44506")) //命令头部
+ 123   2              {
+ 124   3                if(CompareCMD_tail(6,5,"73210"))//命令尾部
+ 125   3                {
+ 126   4                  //send_string[0]='S';
+ 127   4                  //send_string[1]='O';
+ 128   4                  //send_string[2]='J';
+ 129   4                  //send_string[3]='B';
+ 130   4                  //send_string[4]='B';
+ 131   4                  //send_string[5]='B';
+ 132   4                  //send_string[6]='S';
+ 133   4                  send_string[]= "you are good"
+*** ERROR C141 IN LINE 133 OF send.c: syntax error near ']'
+ 134   4                                                    
+ 135   4                                                    
+ 136   4                  LED2 = 0;                     
+*** ERROR C141 IN LINE 136 OF send.c: syntax error near 'LED2'
+ 137   4                  PutString(send_string) ;//匹配成功返回字符串定义
+ 138   4                                                    
+ 139   4                  return 1;
+ 140   4                }
+ 141   3              
+ 142   3              }
+ 143   2            
+ 144   2          }
+ 145   1          return 0;     
+ 146   1      }
+ 147          /************************
+ 148                  ????
+ 149          ************************/
+ 150          //????????-----------
+ 151          void USART() interrupt 4   //???TI?RI??????,TI?RI??????????
+ 152          {
+ 153   1          if(ReceiveString())    
+ 154   1          {
+ 155   2              //自己字节长度匹配成功运行如下含函数度
+ 156   2              Deal_UART_RecData();   
+ 157   2          }
+ 158   1          else
+ 159   1          {
+ 160   2              //??????????????
+ 161   2              //LED1=~LED1;                
+ 162   2          }
+ 163   1          RI=0;  //?????????????????????,??????????????????
+ 164   1      }
+ 165          /***************************
+ 166                  主函数
+ 167          ***************************/
+ 168          void main()
+ 169          {
+ 170   1          EA=1;
+ 171   1          Init_USART();
+ 172   1          while(1)
+ 173   1          {
+ 174   2              //PutString(buf_string);//??20H,??0DH
+C51 COMPILER V9.54   SEND                                                                  12/07/2020 20:24:41 PAGE 4   
+
+ 175   2              
+ 176   2          }
+ 177   1      }
+ 178          
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  2 ERROR(S)
